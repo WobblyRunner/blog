@@ -29,6 +29,24 @@ public class BlogService : IBlogService
 		return true;
 	}
 
+	public bool CreatePost(BlogPost newBlogPost, out Guid guid)
+	{
+		using var context = _contextFactory.CreateDbContext();
+
+		var tracking = context.BlogPosts.Add(newBlogPost);
+		try
+		{
+			context.SaveChanges();
+		}
+		catch (DbUpdateConcurrencyException)
+		{
+			guid = Guid.Empty;
+			return false;
+		}
+		guid = tracking.Entity.PostID;
+		return true;
+	}
+
 	public bool DeletePost(Guid id)
 	{
 		throw new NotImplementedException();

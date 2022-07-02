@@ -1,8 +1,59 @@
 ﻿@page "/Posts/Create"
+@inject IBlogService _blog
+@using Blog.Data.Models
 
 <h3>Create a New Blog Post</h3>
 
+<EditForm Model="_blogPost" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="HandleInvalidSubmit">
+	<DataAnnotationsValidator />
+	<ValidationSummary />
+	
+	<div class="mb-3">
+		<label for="titleInput" class="form-label">Title</label>
+		<InputText id="titleInput" class="form-control" @bind-Value="_blogPost.Title" />
+	</div>
+	<div class="mb-3">
+		<label for="contentInput" class="form-label">Content</label>
+		<InputTextArea id="contentInput" class="form-control" @bind-Value="_blogPost.Content" placeholder="Body of blog post" rows="4" />
+	</div>
+	<div class="mb-3">
+		<label for="tagsInput" class="form-label">Tags</label>
+		<InputText id="tagsInput" class="form-control" @bind-Value="_blogPost.Tags" aria-describedby="tagsHelp" />
+		<div id="tagsHelp" class="form-text">Comma-separated list of words or concepts related to your post</div>
+	</div>
+	<div class="mb-3">
+		<label for="imageInput" class="form-label">Thumbnail image</label>
+		<InputFile accept="image/*" id="imageInput" class="form-control" OnChange="HandleInputFileChange" />
+	</div>
+	<div class="mb-3">
+		<button type="submit" class="btn btn-success">Submit</button>
+	</div>
+</EditForm>
+<div class="container ">
+	@OutputFragment
+</div>
+
 @code
 {
+	private BlogPost _blogPost = new();
+	private string OutputFragment = string.Empty;
 
+	private void HandleInputFileChange(InputFileChangeEventArgs eventArgs)
+	{
+		/* TO BE IMPLEMENTED TODO */
+	}
+
+	private void HandleValidSubmit()
+	{
+		bool success = _blog.CreatePost(_blogPost, out Guid postId);
+		if (success)
+		{
+			OutputFragment = postId.ToString();
+		}
+	}
+
+	private void HandleInvalidSubmit()
+	{
+		OutputFragment = string.Empty;
+	}
 }
