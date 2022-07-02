@@ -1,0 +1,12 @@
+# Remove built objects
+Blog/[Oo]bj/
+Blog/[Bb]in/
+
+# Remove .vs configurations
+.vs/
+
+# Remove user configurations
+*.user
+
+# Remove backup/transient files (created by notepad++)
+*.bak
