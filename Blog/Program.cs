@@ -1,11 +1,22 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Blog.Data.Contexts;
+using Blog.Data.Models;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+
+// Add Entity Framework DbContext instances
+var blogConnectionString = builder.Configuration.GetConnectionString("conn_blog");
+//builder.Services.AddDbContext<BlogContext>(options => options.UseSqlServer(blogConnectionString));
+builder.Services.AddDbContextFactory<BlogContext>(options => options.UseSqlServer(blogConnectionString));
+
+// Add our Service-Based infrastructure
+builder.Services.AddSingleton<IBlogService, BlogService>();
 
 var app = builder.Build();
 

@@ -1,11 +1,14 @@
-﻿using System.Data.Entity;
+﻿using Microsoft.EntityFrameworkCore;
 using Blog.Data.Models;
 
 namespace Blog.Data.Contexts;
 
 public class BlogContext : DbContext
 {
-	public DbSet<BlogPost> BlogPosts { get; set; } = null!;
+	public BlogContext(DbContextOptions<BlogContext> options) : base(options)
+	{
 
+	}
 
+	public DbSet<BlogPost> BlogPosts => Set<BlogPost>();
 }
