@@ -17,6 +17,10 @@ public class BlogService : IBlogService
 	{
 		using var context = _contextFactory.CreateDbContext();
 
+		/* Set the dates for the new blog post automatically */
+		newBlogPost.DateCreated = DateTime.Now;
+		newBlogPost.DateModified = DateTime.Now;
+
 		var tracking = context.BlogPosts.Add(newBlogPost);
 		try
 		{

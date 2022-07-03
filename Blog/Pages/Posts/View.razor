@@ -3,22 +3,36 @@
 @using Blog.Data.Models
 
 <div class="container">
-@if (_blogPost != null && PostID.HasValue)
-{
-	<h2>@(_blogPost.Title)</h2>
-}
-else
-{
-	@if (!PostID.HasValue)
+	@if (_blogPost != null && PostID.HasValue)
 	{
-	<div style="height: 100%; width: 100%; margin: auto;">
-		<h4>Post Not Found</h4>
-	</div>
+		<div class="row">
+			<h2>@(_blogPost.Title)</h2>
+			<small> by @(_blogPost.Author)</small>
+		</div>
+		<div class="row">
+			<p>@(_blogPost.Content)</p>
+		</div>
+		<div class="row">
+			<div class="col">
+				<p>Created on @(_blogPost.DateCreated.ToString("MMM dd, yyyy"))</p>
+			</div>
+			<div class="col">
+				<p>Last updated on @(_blogPost.DateModified.ToString("MMM dd, yyyy"))</p>
+			</div> 
+		</div>
 	}
-	<div class="row">
-		<MostRecentBlogPosts ListCount="5" />
-	</div>
-}
+	else
+	{
+		@if (_postNotFound)
+		{
+			<div style="height: 100%; width: 100%; margin: auto;">
+				<h4>Post Not Found</h4>
+			</div>
+		}
+		<div class="row">
+			<MostRecentBlogPosts ListCount="5" />
+		</div>
+	}
 </div>
 
 @code
@@ -27,16 +41,8 @@ else
 	[SupplyParameterFromQuery(Name = "postId")]
 	public Guid? PostID { get; set; }
 
-	private bool foundPostSuccessfully = false;
+	private bool _postNotFound = false;
 	private BlogPost? _blogPost = null;
-
-	protected async override Task OnInitializedAsync()
-	{
-		base.OnInitialized();
-
-		if (PostID.HasValue)
-			_blogPost = await _blog.GetPostById(PostID.Value);
-	}
 
 	protected async override Task OnParametersSetAsync()
 	{

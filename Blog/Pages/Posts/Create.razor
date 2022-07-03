@@ -9,21 +9,25 @@
 	<ValidationSummary />
 	
 	<div class="mb-3">
-		<label for="titleInput" class="form-label">Title</label>
-		<InputText id="titleInput" class="form-control" @bind-Value="_blogPost.Title" />
+		<label for="tbTitle" class="form-label">Title</label>
+		<InputText id="tbTitle" class="form-control" @bind-Value="_blogPost.Title" />
 	</div>
 	<div class="mb-3">
-		<label for="contentInput" class="form-label">Content</label>
-		<InputTextArea id="contentInput" class="form-control" @bind-Value="_blogPost.Content" placeholder="Body of blog post" rows="4" />
+		<label for="tbAuthor" class="form-label">Author</label>
+		<InputText id="tbAuthor" class="form-control" @bind-Value="_blogPost.Author" />
 	</div>
 	<div class="mb-3">
-		<label for="tagsInput" class="form-label">Tags</label>
-		<InputText id="tagsInput" class="form-control" @bind-Value="_blogPost.Tags" aria-describedby="tagsHelp" />
+		<label for="taContent" class="form-label">Content</label>
+		<InputTextArea id="taContent" class="form-control" @bind-Value="_blogPost.Content" placeholder="Body of blog post" rows="4" />
+	</div>
+	<div class="mb-3">
+		<label for="tbTags" class="form-label">Tags</label>
+		<InputText id="tbTags" class="form-control" @bind-Value="_blogPost.Tags" aria-describedby="tagsHelp" />
 		<div id="tagsHelp" class="form-text">Comma-separated list of words or concepts related to your post</div>
 	</div>
 	<div class="mb-3">
-		<label for="imageInput" class="form-label">Thumbnail image</label>
-		<InputFile accept="image/*" id="imageInput" class="form-control" OnChange="HandleInputFileChange" />
+		<label for="fileImage" class="form-label">Thumbnail image</label>
+		<InputFile accept="image/*" id="fileImage" class="form-control" OnChange="HandleInputFileChange" />
 	</div>
 	<div class="mb-3">
 		<button type="submit" class="btn btn-success">Submit</button>
@@ -32,7 +36,7 @@
 <div class="container ">
 	@if (_createdPost != null)
 	{
-		<h4>Post ID @(_createdPost.PostID) created on @($"{_createdPost.DateCreated:MM/dd/yyyy}")</h4>
+		<h4>Post ID @(_createdPost.PostID) created by @(_createdPost.Author), on @(_createdPost.DateCreated.ToString("MM/dd/yyyy"))</h4>
 	}
 </div>
 

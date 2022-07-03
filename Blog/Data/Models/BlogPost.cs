@@ -12,7 +12,7 @@ public class BlogPost
 	[Key] [DatabaseGenerated(DatabaseGeneratedOption.Identity)] public Guid PostID { get; set; }
 
 	/// <summary> Title of the blog post </summary>
-	[Required] [Index(IsUnique=true)] [StringLength(60)] public string Title { get; set; }
+	[Required] [StringLength(60)] public string Title { get; set; }
 
 	/// <summary> Author of the blog post's full name </summary>
 	[Required] [StringLength(60)] public string Author { get; set; }
