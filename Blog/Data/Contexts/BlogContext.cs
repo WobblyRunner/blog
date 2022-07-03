@@ -11,4 +11,5 @@ public class BlogContext : DbContext
 	}
 
 	public DbSet<BlogPost> BlogPosts => Set<BlogPost>();
+	public DbSet<Image> Images => Set<Image>();
 }
