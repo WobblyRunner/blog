@@ -1,0 +1,26 @@
+﻿@inject IBlogService _blog
+@using Blog.Data.Models;
+
+<h3>Recent Blog Posts</h3> 
+<ul class="list-group list-group-flush">
+	@foreach (var post in mostRecent)
+	{
+		<li class="list-group-item">
+			<a href="/Posts/View?postId=@(post.PostID)">@(post.Title)</a>
+		</li>
+	}
+</ul>
+
+
+@code
+{
+	[Parameter] public int ListCount { get; set; } = 5;
+
+	private IEnumerable<BlogPost> mostRecent = Array.Empty<BlogPost>();
+
+	protected async override Task OnInitializedAsync()
+	{
+		base.OnInitialized();
+		mostRecent = await _blog.GetMostRecent(ListCount);
+	}
+}

@@ -13,50 +13,38 @@ public class BlogService : IBlogService
 		_contextFactory = context;
 	}
 
-	public bool CreatePost(BlogPost newBlogPost)
-	{
-		using var context = _contextFactory.CreateDbContext();
-
-		context.BlogPosts.Add(newBlogPost);
-		try
-		{
-			context.SaveChanges();
-		}
-		catch (DbUpdateConcurrencyException)
-		{
-			return false;
-		}
-		return true;
-	}
-
-	public bool CreatePost(BlogPost newBlogPost, out Guid guid)
+	public async ValueTask<BlogPost?> CreatePost(BlogPost newBlogPost)
 	{
 		using var context = _contextFactory.CreateDbContext();
 
 		var tracking = context.BlogPosts.Add(newBlogPost);
 		try
 		{
-			context.SaveChanges();
+			await context.SaveChangesAsync();
 		}
 		catch (DbUpdateConcurrencyException)
 		{
-			guid = Guid.Empty;
-			return false;
+			return null;
 		}
-		guid = tracking.Entity.PostID;
-		return true;
+		return tracking.Entity;
 	}
 
-	public bool DeletePost(Guid id)
-	{
-		throw new NotImplementedException();
-		return false;
-	}
-
-	public BlogPost? GetPostById(Guid id)
+	public async ValueTask<BlogPost?> DeletePost(Guid id)
 	{
 		throw new NotImplementedException();
 		return null;
+	}
+
+	public async ValueTask<BlogPost?> GetPostById(Guid id)
+	{
+		using var context = _contextFactory.CreateDbContext();
+		return await context.BlogPosts.FirstOrDefaultAsync(post => post.PostID == id);
+	}
+
+	public async ValueTask<IEnumerable<BlogPost>> GetMostRecent(int count = 5)
+	{
+		using var context = _contextFactory.CreateDbContext();
+		return count > 0 ? await context.BlogPosts.OrderByDescending(post => post.DateCreated).Take(count).ToArrayAsync() : Array.Empty<BlogPost>();
 	}
 
 	private bool Exists(Guid id)

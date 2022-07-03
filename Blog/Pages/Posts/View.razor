@@ -1,8 +1,46 @@
-﻿@page "/Posts/View/{PostId}"
+﻿@page "/Posts/View"
+@inject IBlogService _blog
+@using Blog.Data.Models
 
-<h3>View a Blog Post</h3>
+<div class="container">
+@if (_blogPost != null && PostID.HasValue)
+{
+	<h2>@(_blogPost.Title)</h2>
+}
+else
+{
+	@if (!PostID.HasValue)
+	{
+	<div style="height: 100%; width: 100%; margin: auto;">
+		<h4>Post Not Found</h4>
+	</div>
+	}
+	<div class="row">
+		<MostRecentBlogPosts ListCount="5" />
+	</div>
+}
+</div>
 
 @code
 {
-	[Parameter] public string PostID { get; set; } = string.Empty;
+	[Parameter]
+	[SupplyParameterFromQuery(Name = "postId")]
+	public Guid? PostID { get; set; }
+
+	private bool foundPostSuccessfully = false;
+	private BlogPost? _blogPost = null;
+
+	protected async override Task OnInitializedAsync()
+	{
+		base.OnInitialized();
+
+		if (PostID.HasValue)
+			_blogPost = await _blog.GetPostById(PostID.Value);
+	}
+
+	protected async override Task OnParametersSetAsync()
+	{
+		if (PostID.HasValue && PostID.Value != Guid.Empty)
+			_blogPost = await _blog.GetPostById(PostID.Value);
+	}
 }

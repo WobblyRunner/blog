@@ -4,7 +4,7 @@
 
 <h3>Create a New Blog Post</h3>
 
-<EditForm Model="_blogPost" OnValidSubmit="HandleValidSubmit" OnInvalidSubmit="HandleInvalidSubmit">
+<EditForm Model="_blogPost" OnValidSubmit="HandleValidSubmit">
 	<DataAnnotationsValidator />
 	<ValidationSummary />
 	
@@ -30,30 +30,24 @@
 	</div>
 </EditForm>
 <div class="container ">
-	@OutputFragment
+	@if (_createdPost != null)
+	{
+		<h4>Post ID @(_createdPost.PostID) created on @($"{_createdPost.DateCreated:MM/dd/yyyy}")</h4>
+	}
 </div>
 
 @code
 {
 	private BlogPost _blogPost = new();
-	private string OutputFragment = string.Empty;
+	private BlogPost? _createdPost = null;
 
 	private void HandleInputFileChange(InputFileChangeEventArgs eventArgs)
 	{
 		/* TO BE IMPLEMENTED TODO */
 	}
 
-	private void HandleValidSubmit()
+	private async Task HandleValidSubmit()
 	{
-		bool success = _blog.CreatePost(_blogPost, out Guid postId);
-		if (success)
-		{
-			OutputFragment = postId.ToString();
-		}
-	}
-
-	private void HandleInvalidSubmit()
-	{
-		OutputFragment = string.Empty;
+		var createdTask = await _blog.CreatePost(_blogPost);
 	}
 }
