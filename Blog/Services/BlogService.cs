@@ -13,6 +13,7 @@ public class BlogService : IBlogService
 		_contextFactory = context;
 	}
 
+	#region Blog Posts
 	public async ValueTask<BlogPost?> CreatePost(BlogPost newBlogPost)
 	{
 		using var context = _contextFactory.CreateDbContext();
@@ -41,6 +42,9 @@ public class BlogService : IBlogService
 
 	public async ValueTask<BlogPost?> GetPostById(Guid id)
 	{
+		if (!BlogPostExists(id))
+			return null;
+
 		using var context = _contextFactory.CreateDbContext();
 		return await context.BlogPosts.FirstOrDefaultAsync(post => post.PostID == id);
 	}
@@ -51,9 +55,51 @@ public class BlogService : IBlogService
 		return count > 0 ? await context.BlogPosts.OrderByDescending(post => post.DateCreated).Take(count).ToArrayAsync() : Array.Empty<BlogPost>();
 	}
 
-	private bool Exists(Guid id)
+	private bool BlogPostExists(Guid id)
 	{
 		using var context = _contextFactory.CreateDbContext();
 		return context.BlogPosts.Any(post => post.PostID == id);
 	}
+	#endregion
+	#region Image Service
+	public async ValueTask<Image?> UploadImage(Image image)
+	{
+		using var context = _contextFactory.CreateDbContext();
+
+		var tracking = context.Images.Add(image);
+		try
+		{
+			await context.SaveChangesAsync();
+		}
+		catch (DbUpdateConcurrencyException)
+		{
+			return null;
+		}
+		return tracking.Entity;
+	}
+
+	public async ValueTask<Image?> UploadImage(byte[] blob, string fileName, string extension)
+	{
+		Image image = new()
+		{
+			ImageBlob = blob,
+			FileName = fileName,
+			Extension = extension
+		};
+
+		/* Add generated Image model to database */
+		using var context = _contextFactory.CreateDbContext();
+
+		var tracking = context.Images.Add(image);
+		try
+		{
+			await context.SaveChangesAsync();
+		}
+		catch (DbUpdateConcurrencyException)
+		{
+			return null;
+		}
+		return tracking.Entity;
+	}
+	#endregion
 }

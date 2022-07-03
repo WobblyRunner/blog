@@ -18,7 +18,9 @@ public class BlogPost
 	/// <summary> Blog post descriptive tags </summary>
 	[StringLength(600)] public string Tags { get; set; } = null!;
 
+	/// <summary> Foreign key of Thumbnail Image </summary>
 	[ForeignKey(nameof(Image))] public Guid? Thumbnail_ImageID { get; set; }
+	/// <summary> Actual thumbnail image as Image class </summary>
 	public virtual Image? Thumbnail_Image { get; set; }
 
 	/// <summary> Date the post was created, defaults to current date and time </summary>

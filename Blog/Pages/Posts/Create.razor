@@ -1,5 +1,7 @@
 ﻿@page "/Posts/Create"
 @inject IBlogService _blog
+@inject IHostEnvironment _environment
+@using System.IO;
 @using Blog.Data.Models
 
 <h3>Create a New Blog Post</h3>
@@ -28,7 +30,7 @@
 	<div class="mb-3">
 		<div class="col-auto">
 			<label for="fileImage" class="form-label">Thumbnail image</label>
-			<InputFile @ref="_inputFileThumbnail" accept="image/*" id="fileImage" class="form-control" OnChange="HandleInputFileChange" />
+			<InputFile accept="image/*" id="fileImage" class="form-control" OnChange="HandleInputFileChange" />
 		</div>
 		<div class="col-auto">
 			<button class="btn btn-danger" @onclick="HandleFileClearClick">Clear</button>
@@ -47,19 +49,31 @@
 
 @code
 {
-	private const long MAX_FILESIZE_MEG = 1024 * 1024 * 12;
-
-	private InputFile? _inputFileThumbnail = null;
+	private string _tempThumbnailPath = string.Empty;
 	private BlogPost _blogPost = new();
 	private BlogPost? _createdPost = null;
 
-	private async Task HandleInputFileChange(InputFileChangeEventArgs eventArgs)
+	private bool _isFileLoading = false;
+	private async Task HandleInputFileChange(InputFileChangeEventArgs e)
 	{
-		throw new NotImplementedException();
+		ClearCachedThumbnailFile();
+
+		if (e.File.Size > 0)
+		{
+			string fileName;
+
+		}
+	}
+
+	private void ClearCachedThumbnailFile()
+	{
+		if (!string.IsNullOrEmpty(_tempThumbnailPath) && File.Exists(_tempThumbnailPath))
+			File.Delete(_tempThumbnailPath);
 	}
 
 	private async Task HandleValidSubmit()
 	{
+
 		var createdTask = await _blog.CreatePost(_blogPost);
 	}
 
