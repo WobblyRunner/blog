@@ -51,6 +51,12 @@
 
 	private async Task HandleInputFileChange(InputFileChangeEventArgs e)
 	{
+		if (e.File.Size > 0)
+		{
+			using var stream = e.File.OpenReadStream();
+			var extension = e.File.Name.Split('.').LastOrDefault() ?? "UNDEFINED";
+			await _blog.CreateImage(e.File.Name, extension, stream, "test title", "test caption");
+		}
 	}
 
 	private void ClearCachedThumbnailFile()

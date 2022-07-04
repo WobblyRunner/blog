@@ -65,7 +65,11 @@ public class BlogService : IBlogService
 	}
 	#endregion
 	#region Images
-	public async ValueTask<Image?> CreateImage(string fileName, string extension, StreamReader stream, string? title = null, string? caption = null)
+	// Just realized this function is a bad idea.
+	// Needs to be changed to CreateImageAsKey(Stream stream)
+	//	and all values should be random, but certain to fit table constraints
+	// For now... This will work
+	public async ValueTask<Image?> CreateImage(string fileName, string extension, Stream stream, string? title = null, string? caption = null)
 	{
 		var context = _contextFactory.CreateDbContext();
 
@@ -77,7 +81,7 @@ public class BlogService : IBlogService
 			Caption = caption
 		};
 
-		// Create the record in the SQL Database
+		// Create the record in the SQL Database for tracking
 		var tracking = context.Images.Add(image);
 		try
 		{
@@ -92,10 +96,13 @@ public class BlogService : IBlogService
 		var createdGuid = tracking.Entity.ImageID;
 		if (createdGuid != Guid.Empty)
 		{
-
+			string uniqueFileName = $"{{{createdGuid}}}_{fileName}";
+			var success = await _fileUploadService.Upload(uniqueFileName, stream);
+			if (success)
+				Console.WriteLine($"Successfully created file {uniqueFileName}, bound to ImageID {createdGuid}");
 		}
 
-		throw new NotImplementedException();
+		return tracking.Entity;
 	}
 
 	public async ValueTask<Image?> DeleteImage(Guid id)
