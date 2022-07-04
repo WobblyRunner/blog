@@ -6,6 +6,9 @@ public class Image
 	/// <summary> Primary key as GUID. Automatically generated value. </summary>
 	[Key] [DatabaseGenerated(DatabaseGeneratedOption.Identity)] public Guid ImageID { get; set; }
 
+	/// <summary> Name of corresponding Blob in server </summary>
+	[Required] public string BlobURI { get; set; } = null!;
+
 	/// <summary> Filename of uploaded image without Guid prefix </summary>
 	[Required] [StringLength(100)] public string FileName { get; set; } = null!;
 

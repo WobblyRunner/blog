@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Blog.Configuration;
 using Blog.Data.Contexts;
 using Blog.Data.Models;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+
+// Add AutoMapper for mapping of DTOs to models
+builder.Services.AddAutoMapper(typeof(BlogProfile));
 
 // Add Entity Framework DbContext instances
 var blogConnectionString = builder.Configuration.GetConnectionString("conn_blog");

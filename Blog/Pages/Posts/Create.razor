@@ -1,7 +1,9 @@
 ﻿@page "/Posts/Create"
 @inject IBlogService _blog
-@using System.IO;
+@using System.IO
+@using Blog.Data
 @using Blog.Data.Models
+@using Blog.Data.Models.DTOs
 
 <h3>Create a New Blog Post</h3>
 
@@ -30,6 +32,19 @@
 		<label for="fileImage" class="form-label">Thumbnail image</label>
 		<InputFile accept="image/*" id="fileImage" class="form-control" OnChange="HandleInputFileChange" />
 		<div class="form-text">
+			@switch (_fileValidateStatus)
+			{
+				case FileValidateStatus.FileSuccess:
+					<span class="text-success">File validated successfully</span>
+					break;
+				case FileValidateStatus.FileTooLarge:
+					<span class="text-danger">File too large. Choose an image file less than 4mb in size</span>
+					break;
+				case FileValidateStatus.FileEmpty:
+				default:
+					<span></span>
+					break;
+			}
 		</div>
 	</div>
 	<div class="mb-3">
@@ -45,26 +60,51 @@
 
 @code
 {
-	private string _tempThumbnailPath = string.Empty;
+	private enum FileValidateStatus
+	{
+		FileEmpty = 0, FileSuccess, FileTooLarge
+	}
+
+	private IBrowserFile? _thumbnailBrowserFile = null;
 	private BlogPost _blogPost = new();
 	private BlogPost? _createdPost = null;
 
-	private async Task HandleInputFileChange(InputFileChangeEventArgs e)
+	private FileValidateStatus _fileValidateStatus;
+	private void HandleInputFileChange(InputFileChangeEventArgs e)
 	{
-		if (e.File.Size > 0)
+		if (e.File.Size > 0 && e.File.Size <= Global.MAX_THUMBNAIL_FILESIZE) // If a file is uploaded and within the size constraints
 		{
-			using var stream = e.File.OpenReadStream();
-			var extension = e.File.Name.Split('.').LastOrDefault() ?? "UNDEFINED";
-			await _blog.CreateImage(e.File.Name, extension, stream, "test title", "test caption");
+			_thumbnailBrowserFile = e.File;
+			_fileValidateStatus = FileValidateStatus.FileSuccess;
 		}
+		else if (e.File.Size == 0) // If an empty file or no file is uploaded
+		{
+			_thumbnailBrowserFile = null;
+			_fileValidateStatus = FileValidateStatus.FileEmpty;
+		}
+		else // If a file outside the size constraints is uploaded
+			_fileValidateStatus = FileValidateStatus.FileTooLarge;
 	}
 
-	private void ClearCachedThumbnailFile()
+	private async Task HandleValidSubmit(EditContext e)
 	{
-	}
-
-	private async Task HandleValidSubmit()
-	{
-		var createdTask = await _blog.CreatePost(_blogPost);
+		if (_fileValidateStatus == FileValidateStatus.FileSuccess && _thumbnailBrowserFile != null)
+		{
+			/* Attempt to upload the image to the database and blob storage */
+			string? fileName = _thumbnailBrowserFile.Name.Trim(), extension = _thumbnailBrowserFile.Name.Split('.').LastOrDefault()?.Trim();
+			if (!string.IsNullOrEmpty(fileName) && !string.IsNullOrEmpty(extension))
+			{
+				using var stream = _thumbnailBrowserFile.OpenReadStream();
+				ImageUploadDTO imageUpload = new()
+					{
+						FileName = fileName,
+						Extension = extension 
+					};
+				Image? image = await _blog.UploadImage(imageUpload, stream);
+				Console.WriteLine($"Successfully created image {image.ImageID}, Blob {image.BlobURI}");
+				_blogPost.Thumbnail_ImageID = image.ImageID;
+			}
+		}
+		await _blog.CreatePost(_blogPost);
 	}
 }

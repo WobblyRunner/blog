@@ -1,0 +1,14 @@
+﻿@using Blog.Data.Models
+
+<div @attributes="Attributes">
+
+</div>
+
+@code
+{
+	[Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object> Attributes { get; set; } = new();
+	[Parameter] public Image Image { get; set; } = new();
+	[Parameter] public EventCallback<Image> ImageChanged { get; set; }
+
+
+}

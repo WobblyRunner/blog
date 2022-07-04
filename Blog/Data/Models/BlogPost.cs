@@ -16,7 +16,7 @@ public class BlogPost
 	[Required] [StringLength(4_000)] public string Content { get; set; } = null!;
 
 	/// <summary> Blog post descriptive tags </summary>
-	[StringLength(600)] public string Tags { get; set; } = null!;
+	[StringLength(600)] public string? Tags { get; set; } = null!;
 
 	/// <summary> Foreign key of Thumbnail Image </summary>
 	[ForeignKey(nameof(Image))] public Guid? Thumbnail_ImageID { get; set; }

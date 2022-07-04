@@ -1,4 +1,5 @@
 ﻿using Blog.Data.Models;
+using Blog.Data.Models.DTOs;
 
 namespace Blog.Services;
 
@@ -24,7 +25,7 @@ public interface IBlogService
 	public ValueTask<IEnumerable<BlogPost>> GetMostRecent(int count = 5);
 	#endregion
 	#region Images
-	public ValueTask<Image?> CreateImage(string fileName, string extension, Stream stream, string? title = null, string? caption = null);
+	public ValueTask<Image?> UploadImage(ImageUploadDTO imageUpload, Stream imageStream);
 	public ValueTask<Image?> DeleteImage(Guid id);
 	public ValueTask<Image?> GetImageById(Guid id);
 	#endregion

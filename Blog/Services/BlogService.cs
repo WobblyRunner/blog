@@ -1,5 +1,7 @@
-﻿using Blog.Data.Contexts;
+﻿using AutoMapper;
+using Blog.Data.Contexts;
 using Blog.Data.Models;
+using Blog.Data.Models.DTOs;
 using Blog.Services.BlobStorage;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,12 +10,14 @@ namespace Blog.Services;
 public class BlogService : IBlogService
 {
 	private readonly IDbContextFactory<BlogContext> _contextFactory;
-	private readonly BlobService _fileUploadService;
+	private readonly BlobService _blobService;
+	private readonly IMapper _mapper;
 
-	public BlogService(IDbContextFactory<BlogContext> context, BlobService fileUpload)
+	public BlogService(IDbContextFactory<BlogContext> context, BlobService blobService, IMapper mapper)
 	{
 		_contextFactory = context;
-		_fileUploadService = fileUpload;
+		_blobService = blobService;
+		_mapper = mapper;
 	}
 
 	#region Blog Posts
@@ -45,10 +49,8 @@ public class BlogService : IBlogService
 
 	public async ValueTask<BlogPost?> GetPostById(Guid id)
 	{
-		if (!BlogPostExists(id))
-			return null;
-
 		using var context = _contextFactory.CreateDbContext();
+
 		return await context.BlogPosts.FirstOrDefaultAsync(post => post.PostID == id);
 	}
 
@@ -58,51 +60,41 @@ public class BlogService : IBlogService
 		return count > 0 ? await context.BlogPosts.OrderByDescending(post => post.DateCreated).Take(count).ToArrayAsync() : Array.Empty<BlogPost>();
 	}
 
-	private bool BlogPostExists(Guid id)
+	private bool BlogPostExists(Guid id, BlogContext context)
 	{
-		using var context = _contextFactory.CreateDbContext();
 		return context.BlogPosts.Any(post => post.PostID == id);
 	}
 	#endregion
 	#region Images
-	// Just realized this function is a bad idea.
-	// Needs to be changed to CreateImageAsKey(Stream stream)
-	//	and all values should be random, but certain to fit table constraints
-	// For now... This will work
-	public async ValueTask<Image?> CreateImage(string fileName, string extension, Stream stream, string? title = null, string? caption = null)
+	public async ValueTask<Image?> UploadImage(ImageUploadDTO imageUpload, Stream imageStream)
 	{
 		var context = _contextFactory.CreateDbContext();
 
-		Image image = new()
-		{
-			FileName = fileName,
-			Extension = extension,
-			Title = title,
-			Caption = caption
-		};
+		var image = _mapper.Map<Image>(imageUpload);
+		
+		// First, we want to upload the blob to blob storage
+		string? blobUri = await _blobService.Upload(imageStream, image.FileName);
 
-		// Create the record in the SQL Database for tracking
-		var tracking = context.Images.Add(image);
-		try
+		// Secondly, create the record in the database that expresses the link
+		if (blobUri != null)
 		{
-			await context.SaveChangesAsync();
-		}
-		catch (DbUpdateConcurrencyException)
-		{
-			return null;
-		}
-
-		// Upload the image blob to the server
-		var createdGuid = tracking.Entity.ImageID;
-		if (createdGuid != Guid.Empty)
-		{
-			string uniqueFileName = $"{{{createdGuid}}}_{fileName}";
-			var success = await _fileUploadService.Upload(uniqueFileName, stream);
+			image.BlobURI = blobUri;
+			bool success;
+			var tracking = context.Images.Add(image);
+			try
+			{
+				await context.SaveChangesAsync();
+				success = true;
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+				success = true;
+			}
 			if (success)
-				Console.WriteLine($"Successfully created file {uniqueFileName}, bound to ImageID {createdGuid}");
+				return tracking.Entity;
 		}
-
-		return tracking.Entity;
+		return null;
 	}
 
 	public async ValueTask<Image?> DeleteImage(Guid id)
@@ -113,6 +105,11 @@ public class BlogService : IBlogService
 	public async ValueTask<Image?> GetImageById(Guid id)
 	{
 		throw new NotImplementedException();
+	}
+
+	private bool ImageExists(Guid id, BlogContext context)
+	{
+		return context.Images.Any(image => image.ImageID == id);
 	}
 	#endregion
 }

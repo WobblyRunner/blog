@@ -1,4 +1,5 @@
-﻿using Azure.Storage.Blobs;
+﻿using Azure;
+using Azure.Storage.Blobs;
 using Blog.Services.BlobStorage;
 
 namespace Blog.Services.BlobStorage;
@@ -23,29 +24,44 @@ public class BlobService
     /// <param name="fileName"></param>
     /// <param name="stream"></param>
     /// <returns></returns>
-    public async ValueTask<bool> Upload(string fileName, Stream stream)
+    public async ValueTask<string?> Upload(Stream stream, string? fileName = null)
     {
-        bool success = true;
-
+        Guid guid = Guid.NewGuid();
+        string? blobUri = null;
         try
         {
-            await _container.UploadBlobAsync(fileName, stream);
+            var blob = _container.GetBlobClient(guid.ToString());
+		    blobUri = blob.Uri.AbsoluteUri;
+            await blob.UploadAsync(stream);
         }
-        catch (Exception ex)
+        catch (RequestFailedException ex)
         {
             Console.WriteLine(ex.Message);
-            success = false;
         }
-
-        return success;
+        return blobUri;
     }
 
     /// <summary> </summary>
     /// <param name="blobName"></param>
     /// <returns></returns>
     /// <exception cref="NotImplementedException"></exception>
-    public ValueTask<StreamReader> Download(string blobName)
+    public async ValueTask<StreamReader> Download(string blobName)
     {
         throw new NotImplementedException();
+    }
+
+    /// <summary>  </summary>
+    /// <param name="blobName"></param>
+    /// <returns></returns>
+    public async Task Delete(string blobName)
+    {
+        var blob = _container.GetBlobClient(blobName);
+        if (blob.Exists())
+            await blob.DeleteAsync();
+    }
+
+    public async ValueTask<bool> Exists(string blobName)
+    {
+        return await _container.GetBlobClient(blobName).ExistsAsync();
     }
 }
