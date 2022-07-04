@@ -1,5 +1,6 @@
 ﻿using Blog.Data.Contexts;
 using Blog.Data.Models;
+using Blog.Services.BlobStorage;
 using Microsoft.EntityFrameworkCore;
 
 namespace Blog.Services;
@@ -7,10 +8,12 @@ namespace Blog.Services;
 public class BlogService : IBlogService
 {
 	private readonly IDbContextFactory<BlogContext> _contextFactory;
+	private readonly BlobService _fileUploadService;
 
-	public BlogService(IDbContextFactory<BlogContext> context)
+	public BlogService(IDbContextFactory<BlogContext> context, BlobService fileUpload)
 	{
 		_contextFactory = context;
+		_fileUploadService = fileUpload;
 	}
 
 	#region Blog Posts
@@ -61,35 +64,20 @@ public class BlogService : IBlogService
 		return context.BlogPosts.Any(post => post.PostID == id);
 	}
 	#endregion
-	#region Image Service
-	public async ValueTask<Image?> UploadImage(Image image)
+	#region Images
+	public async ValueTask<Image?> CreateImage(string fileName, string extension, StreamReader stream, string? title = null, string? caption = null)
 	{
-		using var context = _contextFactory.CreateDbContext();
+		var context = _contextFactory.CreateDbContext();
 
-		var tracking = context.Images.Add(image);
-		try
-		{
-			await context.SaveChangesAsync();
-		}
-		catch (DbUpdateConcurrencyException)
-		{
-			return null;
-		}
-		return tracking.Entity;
-	}
-
-	public async ValueTask<Image?> UploadImage(byte[] blob, string fileName, string extension)
-	{
 		Image image = new()
 		{
-			ImageBlob = blob,
 			FileName = fileName,
-			Extension = extension
+			Extension = extension,
+			Title = title,
+			Caption = caption
 		};
 
-		/* Add generated Image model to database */
-		using var context = _contextFactory.CreateDbContext();
-
+		// Create the record in the SQL Database
 		var tracking = context.Images.Add(image);
 		try
 		{
@@ -99,7 +87,25 @@ public class BlogService : IBlogService
 		{
 			return null;
 		}
-		return tracking.Entity;
+
+		// Upload the image blob to the server
+		var createdGuid = tracking.Entity.ImageID;
+		if (createdGuid != Guid.Empty)
+		{
+
+		}
+
+		throw new NotImplementedException();
+	}
+
+	public async ValueTask<Image?> DeleteImage(Guid id)
+	{
+		throw new NotImplementedException();
+	}
+
+	public async ValueTask<Image?> GetImageById(Guid id)
+	{
+		throw new NotImplementedException();
 	}
 	#endregion
 }

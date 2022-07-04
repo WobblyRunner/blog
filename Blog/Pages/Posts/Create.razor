@@ -30,24 +30,6 @@
 		<label for="fileImage" class="form-label">Thumbnail image</label>
 		<InputFile accept="image/*" id="fileImage" class="form-control" OnChange="HandleInputFileChange" />
 		<div class="form-text">
-			@switch (_fileLoadStatus)
-			{
-				case FileLoadStatus.FileLoading:
-					<span>Loading file...</span>
-					break;
-
-				case FileLoadStatus.FileLoaded:
-					<span class="text-success">File successfully loaded!</span>
-					break;
-
-				case FileLoadStatus.FileLoadError:
-					<span class="text-danger">File upload failed.</span>
-					break;
-
-				case FileLoadStatus.Idle:
-				default:
-					break;
-			}
 		</div>
 	</div>
 	<div class="mb-3">
@@ -63,54 +45,20 @@
 
 @code
 {
-	private enum FileLoadStatus
-	{
-		Idle = 0, FileLoading, FileLoaded, FileLoadError
-	}
-
-	private const int MAX_FILESIZE = 1024 * 1024 * 8; // 8 MEG
-
 	private string _tempThumbnailPath = string.Empty;
 	private BlogPost _blogPost = new();
 	private BlogPost? _createdPost = null;
 
-	private FileLoadStatus _fileLoadStatus = FileLoadStatus.Idle;
 	private async Task HandleInputFileChange(InputFileChangeEventArgs e)
 	{
-		ClearCachedThumbnailFile();
-
-		if (e.File.Size > 0)
-		{
-			_fileLoadStatus = FileLoadStatus.FileLoading;
-			_tempThumbnailPath = Path.GetTempFileName();
-			try
-			{
-				await using FileStream fs = new(_tempThumbnailPath, FileMode.Create);
-				await e.File.OpenReadStream(MAX_FILESIZE).CopyToAsync(fs);
-				_fileLoadStatus = FileLoadStatus.FileLoaded;
-				Console.WriteLine($"Created temp file at location {_tempThumbnailPath}");
-			}
-			catch (Exception ex)
-			{
-				_fileLoadStatus = FileLoadStatus.FileLoadError;
-				Console.WriteLine(ex);
-				throw;
-			}
-		}
 	}
 
 	private void ClearCachedThumbnailFile()
 	{
-		if (!string.IsNullOrEmpty(_tempThumbnailPath) && File.Exists(_tempThumbnailPath))
-		{
-			File.Delete(_tempThumbnailPath);
-			Console.WriteLine($"Deleted temp file at location {_tempThumbnailPath}");
-		}
 	}
 
 	private async Task HandleValidSubmit()
 	{
-
 		var createdTask = await _blog.CreatePost(_blogPost);
 	}
 }

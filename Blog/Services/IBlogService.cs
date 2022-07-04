@@ -23,15 +23,9 @@ public interface IBlogService
 	/// <returns> IEnumerable object of found BlogPost objects </returns>
 	public ValueTask<IEnumerable<BlogPost>> GetMostRecent(int count = 5);
 	#endregion
-	#region Image Service
-	/// <summary> Upload a new image using an Image Model </summary>
-	/// <param name="newImage"> Model of the new image </param>
-	/// <returns> Newly created Image </returns>
-	public ValueTask<Image?> UploadImage(Image newImage);
-
-	/// <summary> Upload a new image using automatically generated values </summary>
-	/// <param name="blob"> Image as array of bytes </param>
-	/// <returns> Newly created Image </returns>
-	public ValueTask<Image?> UploadImage(byte[] blob, string fileName, string extension);
+	#region Images
+	public ValueTask<Image?> CreateImage(string fileName, string extension, StreamReader stream, string? title = null, string? caption = null);
+	public ValueTask<Image?> DeleteImage(Guid id);
+	public ValueTask<Image?> GetImageById(Guid id);
 	#endregion
 }
